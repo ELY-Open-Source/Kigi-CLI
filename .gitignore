@@ -14,3 +14,6 @@ cred.md
 
 # Upstream xai-org/grok-build reference clone
 /grok-build/
+
+# Local API keys (MiniMax TTS key for kigi-videos)
+env.md

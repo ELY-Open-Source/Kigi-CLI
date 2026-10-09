@@ -1,0 +1,85 @@
+{
+ "scenes": {
+  "s1": [
+   0,
+   6,
+   1.5
+  ],
+  "s2": [
+   6,
+   4,
+   0.5
+  ],
+  "s3": [
+   10,
+   8,
+   0.5
+  ],
+  "s4": [
+   18,
+   6,
+   0.25
+  ],
+  "s5": [
+   24,
+   10,
+   0.5
+  ]
+ },
+ "caps": [
+  {
+   "zh": "一个智能体，扛不动一个庞大的目标。",
+   "en": "One agent can't carry one huge goal.",
+   "t0": 1.54,
+   "t1": 4.14
+  },
+  {
+   "zh": "Kigi 的答案：一张图。",
+   "en": "Kigi's answer: a graph.",
+   "t0": 6.54,
+   "t1": 8.0
+  },
+  {
+   "zh": "智能体的循环，活在节点内部；",
+   "en": "The agentic loop lives inside each node;",
+   "t0": 10.54,
+   "t1": 12.82
+  },
+  {
+   "zh": "节点之间的边，是确定性的 Rust。",
+   "en": "the edges between them are deterministic Rust.",
+   "t0": 12.98,
+   "t1": 15.7
+  },
+  {
+   "zh": "就绪的节点三路并行，各占一棵工作树，",
+   "en": "Ready nodes run three at a time, each in its own worktree,",
+   "t0": 18.29,
+   "t1": 21.3
+  },
+  {
+   "zh": "由怀疑论者逐一审查。",
+   "en": "each checked by a skeptic.",
+   "t0": 21.34,
+   "t1": 23.41
+  },
+  {
+   "zh": "最后，gn-final 重新验收整个目标。",
+   "en": "Finally, gn-final re-verifies the whole objective.",
+   "t0": 24.54,
+   "t1": 27.51
+  },
+  {
+   "zh": "确定性的骨架，智能的血肉。",
+   "en": "Deterministic bones. Intelligent flesh.",
+   "t0": 27.59,
+   "t1": 30.03
+  },
+  {
+   "zh": "Kigi /graph。",
+   "en": "Kigi /graph.",
+   "t0": 30.07,
+   "t1": 31.81
+  }
+ ]
+}

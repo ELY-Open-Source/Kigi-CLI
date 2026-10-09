@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>Kigi /graph — Bauhaus</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: "Jost"; src: url("fonts/Jost.ttf") format("truetype"); font-weight: 100 900; }
+@font-face { font-family: "Noto Sans SC"; src: url("fonts/NotoSansSC.ttf") format("truetype"); font-weight: 100 900; }
+@font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.ttf") format("truetype"); font-weight: 100 800; }
+:root { --paper:#EEE6D6; --ink:#141414; --red:#D42A1E; --yellow:#F2B300; --blue:#1D4FA0; --grey:#BDB5A6; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:1920px; height:1080px; overflow:hidden; background:var(--paper); }
+#root { position:relative; width:100%; height:100%; overflow:hidden; font-family:"Jost", sans-serif; color:var(--ink); }
+.layer { position:absolute; inset:0; }
+.abs { position:absolute; display:block; }
+.mono { font-family:"JetBrains Mono", monospace; }
+.zh { font-family:"Noto Sans SC", sans-serif; }
+.sq { background:var(--red); }
+.ci { background:var(--blue); border-radius:50%; }
+.tri { background:var(--yellow); clip-path:polygon(50% 0, 100% 100%, 0 100%); }
+.nowrap { white-space:nowrap; }
+
+/* grid */
+.gl { position:absolute; background:var(--ink); opacity:.08; }
+.glv { width:1px; top:0; height:1080px; transform-origin:50% 0; }
+.glh { height:1px; left:0; width:1920px; transform-origin:0 50%; }
+
+/* s1 */
+#s1-goal { left:1080px; top:120px; width:600px; height:600px; }
+.s1-cell { position:absolute; width:200px; height:200px; background:var(--ink); }
+#s1-goal-txt { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--paper); }
+#s1-goal-zh { font-size:180px; font-weight:900; line-height:1; }
+#s1-goal-en { font-size:44px; font-weight:600; letter-spacing:.4em; margin-top:24px; padding-left:.4em; }
+#s1-agent { left:240px; top:600px; width:120px; height:120px; }
+#s1-agent-in { width:120px; height:120px; }
+#s1-agent-dot { width:120px; height:120px; }
+#s1-agent-lbl { left:240px; top:744px; font-size:22px; letter-spacing:.2em; font-weight:600; }
+#s1-svg { position:absolute; left:0; top:0; }
+#s1-floor { left:120px; top:720px; width:1680px; height:8px; background:var(--ink); transform-origin:0 50%; }
+
+/* s2 */
+#s2-field { left:0; top:0; width:1080px; height:1080px; background:var(--red); }
+#s2-kigi { left:104px; top:70px; display:flex; font-size:330px; font-weight:800; line-height:1; color:var(--paper); letter-spacing:-.01em; }
+#s2-kigi span { display:block; }
+#s2-slash { left:120px; top:470px; height:170px; overflow:hidden; font-size:150px; font-weight:700; line-height:170px; color:var(--ink); width:0; }
+#s2-cursor { left:120px; top:490px; width:80px; height:130px; background:var(--ink); }
+#s2-tu { left:1188px; top:60px; font-size:560px; font-weight:900; line-height:1; }
+#s2-circle { left:840px; top:420px; width:360px; height:360px; mix-blend-mode:multiply; }
+#s2-tri { left:1500px; top:600px; width:300px; height:240px; transform-origin:50% 100%; }
+#s2-sub { left:120px; top:720px; font-size:30px; font-weight:600; letter-spacing:.32em; color:var(--paper); }
+
+/* s3 */
+#s3-cam { position:absolute; inset:0; transform-origin:960px 360px; }
+.s3-node { position:absolute; top:240px; width:240px; height:240px; }
+.s3-ring { position:absolute; left:40px; top:40px; width:160px; height:160px; border:3px solid var(--paper); border-radius:50%; opacity:.9; }
+.s3-orb { position:absolute; left:0; top:0; width:240px; height:240px; }
+.s3-ball { position:absolute; left:96px; top:16px; width:48px; height:48px; }
+.s3-tag { position:absolute; font-size:11px; color:var(--paper); letter-spacing:.12em; }
+.s3-edge { position:absolute; top:356px; height:8px; width:360px; background:var(--ink); transform-origin:0 50%; }
+.s3-ruler { position:absolute; top:372px; height:14px; width:360px; transform-origin:0 50%;
+  background:repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 30px); }
+.s3-arrow { position:absolute; top:340px; width:28px; height:40px; background:var(--ink); clip-path:polygon(0 0, 100% 50%, 0 100%); }
+.s3-elbl { position:absolute; top:396px; font-size:22px; font-weight:500; }
+#s3-big1 { left:120px; top:540px; font-size:104px; font-weight:800; line-height:1; color:var(--blue); letter-spacing:-.01em; }
+#s3-big2 { left:120px; top:660px; font-size:104px; font-weight:800; line-height:1; letter-spacing:-.01em; }
+.s3-leg { position:absolute; left:1200px; display:flex; align-items:center; gap:28px; height:64px; }
+.s3-leg-shape { width:56px; height:56px; flex:none; }
+.s3-leg-txt { font-size:30px; font-weight:700; letter-spacing:.08em; }
+.s3-leg-txt .zh { font-size:26px; font-weight:500; margin-left:14px; letter-spacing:0; }
+#s3-foot { left:1200px; top:780px; font-size:17px; opacity:.75; letter-spacing:.04em; }
+
+/* s4 */
+#s4-ground { background:var(--ink); }
+#s4-head { left:120px; top:84px; font-size:24px; color:var(--paper); letter-spacing:.06em; overflow:hidden; height:32px; width:0; }
+#s4-x3 { left:1560px; top:40px; font-size:150px; font-weight:800; line-height:1; color:var(--yellow); }
+.s4-lane { position:absolute; left:360px; width:1320px; height:3px; background:var(--paper); transform-origin:0 50%; }
+.s4-lbl { position:absolute; left:360px; font-size:20px; color:var(--paper); opacity:.8; }
+.s4-node { position:absolute; width:96px; height:96px; }
+.s4-w { position:absolute; width:72px; height:72px; }
+.s4-commit { position:absolute; width:24px; height:24px; background:var(--paper); }
+.s4-tri { position:absolute; left:1584px; width:96px; height:84px; transform-origin:50% 100%; }
+.s4-check { position:absolute; left:1584px; width:96px; text-align:center; font-size:40px; font-weight:800; color:var(--ink); }
+.s4-verdict { position:absolute; left:1176px; font-size:20px; text-align:right; width:380px; }
+.s4-round { position:absolute; left:1700px; font-size:22px; color:var(--paper); width:100px; }
+
+/* s5 */
+#s5-yellow { background:var(--yellow); clip-path:circle(0% at 960px 690px); }
+#s5-svg { position:absolute; left:0; top:0; }
+.s5-node { position:absolute; width:96px; height:96px; }
+.s5-name { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--paper); font-size:22px; font-weight:600; letter-spacing:.06em; }
+.s5-id { position:absolute; width:160px; text-align:center; font-size:14px; }
+.s5-flesh { position:absolute; left:18px; top:18px; width:60px; height:60px; }
+#s5-final { left:810px; top:560px; width:300px; height:260px; transform-origin:50% 100%; }
+#s5-final-lbl { left:1150px; top:700px; font-size:22px; }
+#s5-final-lbl b { display:block; font-family:"Jost"; font-size:34px; font-weight:700; letter-spacing:.12em; }
+#s5-final-lbl i { display:block; font-style:normal; font-family:"Noto Sans SC"; font-size:24px; font-weight:700; }
+#s5-bones-wrap { left:-220px; top:410px; width:800px; height:100px; transform:rotate(-90deg); }
+#s5-bones { font-size:62px; font-weight:800; line-height:100px; text-align:center; letter-spacing:.02em; }
+#s5-flesh-wrap { left:1340px; top:410px; width:800px; height:100px; transform:rotate(90deg); }
+#s5-flesh-t { font-size:62px; font-weight:800; line-height:100px; text-align:center; color:var(--blue); letter-spacing:.02em; }
+#s5-zh1 { left:270px; top:120px; writing-mode:vertical-rl; font-size:44px; font-weight:900; letter-spacing:.2em; }
+#s5-zh2 { left:1594px; top:120px; writing-mode:vertical-rl; font-size:44px; font-weight:900; letter-spacing:.2em; color:var(--blue); }
+/* logo */
+#s5-logo { background:var(--paper); }
+#s5-kigi { left:104px; top:110px; font-size:340px; font-weight:800; line-height:1; letter-spacing:-.01em; }
+#s5-kigi span { display:inline-block; }
+#s5-graph { left:120px; top:470px; font-size:130px; font-weight:700; color:var(--red); line-height:1; overflow:hidden; height:150px; width:0; }
+#s5-l-sq { left:1080px; top:300px; width:200px; height:200px; }
+#s5-l-ci { left:1320px; top:300px; width:200px; height:200px; }
+#s5-l-tri { left:1560px; top:300px; width:220px; height:200px; transform-origin:50% 100%; }
+#s5-rule { left:1080px; top:560px; width:700px; height:8px; background:var(--ink); transform-origin:0 50%; }
+#s5-tag { left:1080px; top:596px; font-size:22px; letter-spacing:.06em; }
+#s5-tag2 { left:1080px; top:640px; font-size:28px; font-weight:700; }
+#s5-cursor { width:22px; height:40px; background:var(--red); display:inline-block; vertical-align:-6px; margin-left:8px; }
+
+/* transitions */
+.wipe { position:absolute; left:0; top:0; width:1920px; height:1080px; }
+
+/* HUD */
+#hud { position:absolute; inset:0; pointer-events:none; }
+#hud .hud-l { left:40px; top:22px; font-size:15px; letter-spacing:.14em; font-weight:500; }
+#hud .hud-l span { font-weight:800; }
+.beat { position:absolute; top:24px; width:14px; height:14px; border:2px solid var(--ink); }
+
+/* captions */
+#band { position:absolute; left:0; top:880px; width:1920px; height:200px; background:var(--paper); }
+#band-rule { left:120px; top:888px; width:1680px; height:3px; background:var(--ink); transform-origin:0 50%; }
+#band-mark { left:120px; top:922px; width:28px; height:28px; background:var(--red); }
+.cap { position:absolute; left:180px; top:906px; width:1620px; height:150px; }
+.cap-zh { position:absolute; left:0; top:0; font-family:"Noto Sans SC"; font-size:42px; font-weight:700; line-height:60px; white-space:nowrap; }
+.cap-en { position:absolute; left:0; top:68px; font-size:28px; font-weight:500; line-height:40px; letter-spacing:.02em; opacity:.72; white-space:nowrap; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="34" data-width="1920" data-height="1080">
+
+  <div id="bg" class="clip layer" data-start="0" data-duration="34" data-track-index="0" style="background:#EEE6D6"></div>
+  <div id="grid" class="clip layer" data-start="0" data-duration="34" data-track-index="1"></div>
+
+  <!-- ============ S1 · HOOK ============ -->
+  <section id="sc1" class="clip layer" data-start="0" data-duration="6" data-track-index="2">
+    <div id="s1-floor" class="abs"></div>
+    <svg id="s1-svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+      <path id="s1-path" d="M840 660 C 700 300, 300 820, 420 420 S 900 180, 660 560 S 180 780, 300 300 S 780 120, 560 690 S 200 520, 380 640"
+        fill="none" stroke="#141414" stroke-width="6" stroke-linecap="round" />
+    </svg>
+    <div id="s1-goal" class="abs">
+      <div class="s1-cell" style="left:0;top:0"></div><div class="s1-cell" style="left:200px;top:0"></div><div class="s1-cell" style="left:400px;top:0"></div>
+      <div class="s1-cell" style="left:0;top:200px"></div><div class="s1-cell" style="left:200px;top:200px"></div><div class="s1-cell" style="left:400px;top:200px"></div>
+      <div class="s1-cell" style="left:0;top:400px"></div><div class="s1-cell" style="left:200px;top:400px"></div><div class="s1-cell" style="left:400px;top:400px"></div>
+      <div id="s1-goal-txt"><div id="s1-goal-zh" class="zh">目标</div><div id="s1-goal-en">GOAL</div></div>
+    </div>
+    <div id="s1-agent" class="abs"><div id="s1-agent-in" class="abs"><div id="s1-agent-dot" class="ci abs"></div></div></div>
+    <div id="s1-agent-lbl" class="abs nowrap">AGENT <span class="zh">智能体</span></div>
+  </section>
+
+  <!-- ============ S2 · TITLE ============ -->
+  <section id="sc2" class="clip layer" data-start="6" data-duration="4" data-track-index="2">
+    <div id="s2-field" class="abs"></div>
+    <div id="s2-kigi" class="abs"><span>K</span><span>I</span><span>G</span><span>I</span></div>
+    <div id="s2-slash" class="abs mono nowrap">/graph</div>
+    <div id="s2-cursor" class="abs"></div>
+    <div id="s2-tu" class="abs zh">图</div>
+    <div id="s2-circle" class="abs ci"></div>
+    <div id="s2-tri" class="abs tri"></div>
+    <div id="s2-sub" class="abs nowrap">GRAPH ENGINE · <span class="zh">图引擎</span></div>
+  </section>
+
+  <!-- ============ S3 · PRINCIPLE ============ -->
+  <section id="sc3" class="clip layer" data-start="10" data-duration="8" data-track-index="2">
+    <div id="s3-cam">
+      <div class="s3-edge" id="s3-e1" style="left:480px"></div><div class="s3-ruler" id="s3-r1" style="left:480px"></div>
+      <div class="s3-edge" id="s3-e2" style="left:1080px"></div><div class="s3-ruler" id="s3-r2" style="left:1080px"></div>
+      <div class="s3-arrow" id="s3-a1" style="left:812px"></div><div class="s3-arrow" id="s3-a2" style="left:1412px"></div>
+      <div class="s3-elbl mono nowrap" id="s3-l1" style="left:492px">fn ready() → bool</div>
+      <div class="s3-elbl mono nowrap" id="s3-l2" style="left:1092px">DepKind::Blocks</div>
+      <div class="s3-node sq" id="s3-n1" style="left:240px"><div class="s3-ring"></div><div class="s3-orb" id="s3-o1"><div class="s3-ball ci"></div></div></div>
+      <div class="s3-node sq" id="s3-n2" style="left:840px"><div class="s3-ring"></div><div class="s3-orb" id="s3-o2"><div class="s3-ball ci"></div></div>
+        <div class="s3-tag mono nowrap" id="s3-t1" style="left:98px;top:96px">PLAN</div>
+        <div class="s3-tag mono nowrap" id="s3-t2" style="left:103px;top:116px">ACT</div>
+        <div class="s3-tag mono nowrap" id="s3-t3" style="left:94px;top:136px">CHECK</div>
+        <div class="s3-tag nowrap" id="s3-t4" style="left:12px;top:210px;font-family:Jost;font-weight:700">AGENT LOOP · <span class="zh">智能体循环</span></div>
+      </div>
+      <div class="s3-node sq" id="s3-n3" style="left:1440px"><div class="s3-ring"></div><div class="s3-orb" id="s3-o3"><div class="s3-ball ci"></div></div></div>
+    </div>
+    <div id="s3-big1" class="abs nowrap">LOOP INSIDE.</div>
+    <div id="s3-big2" class="abs nowrap">EDGES: RUST.</div>
+    <div class="s3-leg" id="s3-g1" style="top:530px"><div class="s3-leg-shape ci"></div><div class="s3-leg-txt nowrap">AGENT<span class="zh">智能体</span></div></div>
+    <div class="s3-leg" id="s3-g2" style="top:610px"><div class="s3-leg-shape sq"></div><div class="s3-leg-txt nowrap">NODE<span class="zh">结构</span></div></div>
+    <div class="s3-leg" id="s3-g3" style="top:690px"><div class="s3-leg-shape tri"></div><div class="s3-leg-txt nowrap">SKEPTIC<span class="zh">审查者</span></div></div>
+    <div id="s3-foot" class="abs mono nowrap">KANDINSKY · BAUHAUS 1923 · ▲ YELLOW ■ RED ● BLUE</div>
+  </section>
+
+  <!-- ============ S4 · FAN-OUT ============ -->
+  <section id="sc4" class="clip layer" data-start="18" data-duration="6" data-track-index="2">
+    <div id="s4-ground" class="layer"></div>
+    <div id="s4-head" class="abs mono nowrap">$ KIGI_GRAPH_CONCURRENCY=3 · git worktree add ×3</div>
+    <div id="s4-x3" class="abs nowrap">×3</div>
+    <div id="s4-lanes"></div>
+  </section>
+
+  <!-- ============ S5 · gn-final → bones/flesh → logo ============ -->
+  <section id="sc5" class="clip layer" data-start="24" data-duration="10" data-track-index="2">
+    <div id="s5-yellow" class="layer"></div>
+    <svg id="s5-svg" width="1920" height="1080" viewBox="0 0 1920 1080"></svg>
+    <div id="s5-nodes"></div>
+    <div id="s5-final" class="abs tri"></div>
+    <div id="s5-final-lbl" class="abs mono nowrap">gn-final<b>FINAL VERIFICATION</b><i>最终验收 · 整个目标</i></div>
+    <div id="s5-bones-wrap" class="abs"><div id="s5-bones" class="nowrap">DETERMINISTIC BONES</div></div>
+    <div id="s5-flesh-wrap" class="abs"><div id="s5-flesh-t" class="nowrap">INTELLIGENT FLESH</div></div>
+    <div id="s5-zh1" class="abs zh">确定性的骨架</div>
+    <div id="s5-zh2" class="abs zh">智能的血肉</div>
+    <div id="s5-logo" class="layer">
+      <div id="s5-kigi" class="abs nowrap"><span>K</span><span>I</span><span>G</span><span>I</span></div>
+      <div id="s5-graph" class="abs mono nowrap">/graph</div>
+      <div id="s5-l-sq" class="abs sq"></div>
+      <div id="s5-l-ci" class="abs ci"></div>
+      <div id="s5-l-tri" class="abs tri"></div>
+      <div id="s5-rule" class="abs"></div>
+      <div id="s5-tag" class="abs mono nowrap">/graph &lt;objective&gt;<span id="s5-cursor"></span></div>
+      <div id="s5-tag2" class="abs nowrap">Kimi Code CLI · <span class="zh">社区构建版</span></div>
+    </div>
+  </section>
+
+  <!-- transitions -->
+  <div id="wipes" class="clip layer" data-start="0" data-duration="34" data-track-index="3">
+    <div id="w6" class="wipe" style="background:#D42A1E;width:1080px"></div>
+    <div id="w10" class="wipe" style="background:#F2B300"></div>
+    <div id="w18" class="wipe" style="background:#1D4FA0;border-radius:50%"></div>
+    <div id="w24" class="wipe" style="background:#D42A1E"></div>
+    <div id="w30" class="wipe" style="background:#141414"></div>
+  </div>
+
+  <!-- captions band -->
+  <div id="capband" class="clip layer" data-start="0" data-duration="34" data-track-index="4">
+    <div id="band"></div>
+    <div id="band-rule" class="abs"></div>
+    <div id="band-mark" class="abs"></div>
+  </div>
+  <div id="cap0" class="clip cap" data-start="1.44" data-duration="3.4" data-track-index="5"><div class="cap-zh" id="cap0-zh">一个智能体，扛不动一个庞大的目标。</div><div class="cap-en" id="cap0-en">One agent can't carry one huge goal.</div></div>
+  <div id="cap1" class="clip cap" data-start="6.44" data-duration="2.26" data-track-index="5"><div class="cap-zh" id="cap1-zh">Kigi 的答案：一张图。</div><div class="cap-en" id="cap1-en">Kigi's answer: a graph.</div></div>
+  <div id="cap2" class="clip cap" data-start="10.44" data-duration="2.42" data-track-index="5"><div class="cap-zh" id="cap2-zh">智能体的循环，活在节点内部；</div><div class="cap-en" id="cap2-en">The agentic loop lives inside each node;</div></div>
+  <div id="cap3" class="clip cap" data-start="12.88" data-duration="3.52" data-track-index="5"><div class="cap-zh" id="cap3-zh">节点之间的边，是确定性的 Rust。</div><div class="cap-en" id="cap3-en">the edges between them are deterministic Rust.</div></div>
+  <div id="cap4" class="clip cap" data-start="18.19" data-duration="3.03" data-track-index="5"><div class="cap-zh" id="cap4-zh">就绪的节点三路并行，各占一棵工作树，</div><div class="cap-en" id="cap4-en">Ready nodes run three at a time, each in its own worktree,</div></div>
+  <div id="cap5" class="clip cap" data-start="21.24" data-duration="2.87" data-track-index="5"><div class="cap-zh" id="cap5-zh">由怀疑论者逐一审查。</div><div class="cap-en" id="cap5-en">each checked by a skeptic.</div></div>
+  <div id="cap6" class="clip cap" data-start="24.44" data-duration="3.03" data-track-index="5"><div class="cap-zh" id="cap6-zh">最后，gn-final 重新验收整个目标。</div><div class="cap-en" id="cap6-en">Finally, gn-final re-verifies the whole objective.</div></div>
+  <div id="cap7" class="clip cap" data-start="27.49" data-duration="2.46" data-track-index="5"><div class="cap-zh" id="cap7-zh">确定性的骨架，智能的血肉。</div><div class="cap-en" id="cap7-en">Deterministic bones. Intelligent flesh.</div></div>
+  <div id="cap8" class="clip cap" data-start="29.97" data-duration="3.03" data-track-index="5"><div class="cap-zh" id="cap8-zh">Kigi /graph。</div><div class="cap-en" id="cap8-en">Kigi /graph.</div></div>
+
+  <!-- HUD -->
+  <div id="hud" class="clip" data-start="0" data-duration="34" data-track-index="6">
+    <div id="hud-0" class="abs mono nowrap hud-l">KIGI <span>/GRAPH</span> — <span>01</span>/05 · HOOK</div>
+<div id="hud-1" class="abs mono nowrap hud-l">KIGI <span>/GRAPH</span> — <span>02</span>/05 · TITLE</div>
+<div id="hud-2" class="abs mono nowrap hud-l">KIGI <span>/GRAPH</span> — <span>03</span>/05 · PRINCIPLE</div>
+<div id="hud-3" class="abs mono nowrap hud-l">KIGI <span>/GRAPH</span> — <span>04</span>/05 · FAN-OUT</div>
+<div id="hud-4" class="abs mono nowrap hud-l">KIGI <span>/GRAPH</span> — <span>05</span>/05 · VERIFY</div>
+    <div class="beat" id="bt0" style="left:1806px"></div><div class="beat" id="bt1" style="left:1828px"></div>
+    <div class="beat" id="bt2" style="left:1850px"></div><div class="beat" id="bt3" style="left:1872px"></div>
+  </div>
+
+  <audio id="mix" src="audio/mix.wav" data-start="0" data-duration="34" data-track-index="9" data-volume="1"></audio>
+</div>
+
+<script>
+(function () {
+  const tl = gsap.timeline({ paused: true });
+  const $ = (s) => document.querySelector(s);
+  const mk = (parent, cls, css, html) => { const d = document.createElement("div"); d.className = cls; Object.assign(d.style, css); if (html) d.innerHTML = html; parent.appendChild(d); return d; };
+  const SVGNS = "http://www.w3.org/2000/svg";
+
+  /* ---------- grid (16×9 modules of 120px) ---------- */
+  const grid = $("#grid");
+  for (let i = 1; i < 16; i++) { const l = mk(grid, "gl glv", { left: i * 120 + "px" }); tl.fromTo(l, { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: "expo.out" }, (i % 4) * 0.125); }
+  for (let j = 1; j < 9; j++) { const l = mk(grid, "gl glh", { top: j * 120 + "px" }); tl.fromTo(l, { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, (j % 4) * 0.125); }
+
+  /* ---------- HUD: scene index + beat meter ---------- */
+  const sceneT = [0, 6, 10, 18, 24];
+  sceneT.forEach((t, i) => { if (i > 0) tl.fromTo("#hud-" + i, { opacity: 0 }, { opacity: 1, duration: 0.01 }, t); if (i < 4) tl.to("#hud-" + i, { opacity: 0, duration: 0.01 }, sceneT[i + 1]); });
+  for (let b = 0; b < 68; b++) {
+    const t = b * 0.5, k = b % 4;
+    tl.set("#bt" + k, { backgroundColor: "#D42A1E" }, t);
+    tl.set("#bt" + k, { backgroundColor: "rgba(0,0,0,0)" }, t + 0.5);
+  }
+  tl.set([".hud-l", ".beat"], { color: "#EEE6D6", borderColor: "#EEE6D6" }, 18);
+  tl.set([".hud-l", ".beat"], { color: "#141414", borderColor: "#141414" }, 24);
+
+  /* ---------- S1 · HOOK (0–6) ---------- */
+  tl.fromTo("#s1-floor", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, 0);
+  tl.fromTo("#s1-goal", { y: -900 }, { y: 0, duration: 0.25, ease: "power3.in" }, 0.25);
+  tl.fromTo("#s1-goal", { scaleY: 1 }, { keyframes: [{ scaleY: 0.9, duration: 0.06 }, { scaleY: 1, duration: 0.44, ease: "elastic.out(1,0.4)" }], transformOrigin: "50% 100%" }, 0.5);
+  tl.fromTo("#s1-agent", { scale: 0 }, { scale: 1, duration: 0.5, ease: "back.out(2)" }, 1.0);
+  tl.fromTo("#s1-agent-lbl", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.25, ease: "expo.out" }, 1.0);
+  tl.to("#s1-agent-lbl", { opacity: 0, duration: 0.25 }, 3.5);
+  // push, push — the goal doesn't move
+  tl.to("#s1-agent", { x: 720, rotation: 360, duration: 0.5, ease: "power2.in" }, 1.5);
+  tl.to("#s1-agent-dot", { keyframes: [{ scaleX: 0.7, scaleY: 1.2, duration: 0.08 }, { scaleX: 1, scaleY: 1, duration: 0.3, ease: "elastic.out(1,0.3)" }], transformOrigin: "100% 50%" }, 2.0);
+  tl.to("#s1-goal", { keyframes: [{ x: 14, duration: 0.05 }, { x: 0, duration: 0.2, ease: "power2.out" }] }, 2.0);
+  tl.to("#s1-agent", { x: 480, rotation: 120, duration: 0.5, ease: "power2.out" }, 2.0);
+  tl.to("#s1-agent", { x: 720, rotation: 360, duration: 0.5, ease: "power2.in" }, 2.5);
+  tl.to("#s1-agent-dot", { keyframes: [{ scaleX: 0.7, scaleY: 1.2, duration: 0.08 }, { scaleX: 1, scaleY: 1, duration: 0.3, ease: "elastic.out(1,0.3)" }], transformOrigin: "100% 50%" }, 3.0);
+  tl.to("#s1-goal", { keyframes: [{ x: 14, duration: 0.05 }, { x: 0, duration: 0.2, ease: "power2.out" }] }, 3.0);
+  tl.to("#s1-agent", { x: 540, rotation: 200, duration: 0.5, ease: "power2.out" }, 3.0);
+  // lost: the agent wanders off the grid, leaving a scribble
+  const path = $("#s1-path"), L = path.getTotalLength();
+  gsap.set(path, { strokeDasharray: L, strokeDashoffset: L });
+  tl.fromTo(path, { opacity: 0 }, { opacity: 1, duration: 0.01 }, 3.5);
+  tl.fromTo(path, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: 1.5, ease: "none" }, 3.5);
+  const p0 = path.getPointAtLength(0), kf = [];
+  for (let i = 1; i <= 48; i++) { const p = path.getPointAtLength((L * i) / 48); kf.push({ x: p.x - p0.x, y: p.y - p0.y, duration: 1.5 / 48, ease: "none" }); }
+  tl.fromTo("#s1-agent-in", { x: 0, y: 0 }, { keyframes: kf, immediateRender: false }, 3.5);
+  tl.to("#s1-agent-dot", { backgroundColor: "#BDB5A6", scale: 0.6, duration: 0.5, ease: "power2.inOut" }, 4.5);
+  tl.to(path, { stroke: "#BDB5A6", duration: 0.5 }, 5.0);
+  // the goal decomposes into nodes
+  tl.to("#s1-goal-txt", { opacity: 0, duration: 0.25 }, 5.0);
+  tl.to(".s1-cell", { backgroundColor: "#D42A1E", scale: 0.6, duration: 0.25, ease: "back.out(2)", stagger: 0.0625 }, 5.0);
+
+  /* ---------- S2 · TITLE (6–10) ---------- */
+  tl.fromTo("#w6", { x: -1080 }, { x: 0, duration: 0.25, ease: "power3.in" }, 5.75);
+  tl.set("#w6", { opacity: 0 }, 6.0);
+  tl.set("#w6", { opacity: 1 }, 0);
+  ["6.5", "6.75", "7.0", "7.25"].forEach((t, i) =>
+    tl.fromTo(`#s2-kigi span:nth-child(${i + 1})`, { opacity: 0, scale: 1.5, y: -40 }, { opacity: 1, scale: 1, y: 0, duration: 0.125, ease: "power4.in" }, +t));
+  tl.fromTo("#s2-slash", { width: 0 }, { width: 560, duration: 0.5, ease: "steps(6)" }, 7.5);
+  tl.fromTo("#s2-cursor", { x: 0, opacity: 0 }, { x: 560, opacity: 1, duration: 0.5, ease: "steps(6)" }, 7.5);
+  tl.to("#s2-cursor", { opacity: 0, duration: 0.01, repeat: 7, yoyo: true, repeatDelay: 0.24 }, 8.0);
+  tl.fromTo("#s2-tu", { y: -900 }, { y: 0, duration: 0.25, ease: "power4.in" }, 7.75);
+  tl.to("#s2-tu", { keyframes: [{ scaleY: 0.92, duration: 0.05 }, { scaleY: 1, duration: 0.4, ease: "elastic.out(1,0.35)" }], transformOrigin: "50% 100%" }, 8.0);
+  tl.fromTo("#s2-circle", { scale: 0 }, { scale: 1, duration: 0.5, ease: "back.out(1.8)" }, 8.5);
+  tl.fromTo("#s2-tri", { scaleY: 0 }, { scaleY: 1, duration: 0.25, ease: "expo.out" }, 9.0);
+  tl.fromTo("#s2-sub", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "steps(8)" }, 9.0);
+  tl.to("#s2-circle", { x: 120, duration: 0.5, ease: "power2.inOut" }, 9.5);
+
+  /* ---------- transition 10 (yellow, left→right) ---------- */
+  const wipe = (id, t, from, mid, to) => {
+    tl.fromTo(id, from, { ...mid, duration: 0.25, ease: "power3.in", immediateRender: true }, t - 0.25);
+    tl.to(id, { ...to, duration: 0.25, ease: "power3.out" }, t);
+  };
+  wipe("#w10", 10, { x: -1920 }, { x: 0 }, { x: 1920 });
+
+  /* ---------- S3 · PRINCIPLE (10–18) ---------- */
+  [1, 2, 3].forEach((n, i) => {
+    tl.fromTo("#s3-n" + n, { y: -480 }, { y: 0, duration: 0.25, ease: "power3.in" }, 10 + i * 0.25);
+    tl.fromTo("#s3-o" + n, { rotation: i * 120 }, { rotation: i * 120 + 360 * 4, duration: 8, ease: "none" }, 10);
+  });
+  // zoom into the middle node: the loop lives inside
+  tl.fromTo("#s3-cam", { scale: 1 }, { scale: 2.6, duration: 0.5, ease: "expo.inOut" }, 11.0);
+  tl.fromTo(["#s3-t1", "#s3-t2", "#s3-t3"], { opacity: 0 }, { opacity: 1, duration: 0.125, stagger: 0.25 }, 11.5);
+  tl.fromTo("#s3-t4", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 12.0);
+  tl.to("#s3-cam", { scale: 1, duration: 0.5, ease: "expo.inOut" }, 12.5);
+  tl.to(["#s3-t1", "#s3-t2", "#s3-t3", "#s3-t4"], { opacity: 0, duration: 0.25 }, 12.75);
+  tl.fromTo("#s3-big1", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "steps(12)" }, 12.0);
+  // edges: ruler-straight, stepped — deterministic
+  tl.fromTo(["#s3-e1", "#s3-e2"], { scaleX: 0 }, { scaleX: 1, duration: 1.0, ease: "steps(12)", stagger: 0.5 }, 13.0);
+  tl.fromTo(["#s3-r1", "#s3-r2"], { scaleX: 0 }, { scaleX: 1, duration: 1.0, ease: "steps(12)", stagger: 0.5 }, 13.0);
+  tl.fromTo(["#s3-a1", "#s3-a2"], { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(3)", stagger: 0.5 }, 14.0);
+  tl.fromTo(["#s3-l1", "#s3-l2"], { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: "expo.out", stagger: 0.5 }, 14.0);
+  tl.fromTo("#s3-big2", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "steps(12)" }, 14.5);
+  // legend: Kandinsky's triad
+  [1, 2, 3].forEach((n, i) => tl.fromTo("#s3-g" + n, { x: 80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.25, ease: "expo.out" }, 16 + i * 0.5));
+  tl.fromTo("#s3-foot", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "steps(16)" }, 17.0);
+
+  /* ---------- transition 18 (blue circle iris) ---------- */
+  tl.fromTo("#w18", { scale: 0, x: 0 }, { scale: 2.4, duration: 0.25, ease: "power3.in", immediateRender: true }, 17.75);
+  tl.to("#w18", { scale: 0, duration: 0.25, ease: "power3.out" }, 18.0);
+
+  /* ---------- S4 · FAN-OUT (18–24) ---------- */
+  tl.fromTo("#s4-head", { width: 0 }, { width: 900, duration: 1.0, ease: "steps(36)" }, 18.0);
+  tl.fromTo("#s4-x3", { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(2.2)" }, 18.5);
+  const lanesEl = $("#s4-lanes");
+  const lanes = [{ y: 300, id: "gn-386aaa87", name: "api" }, { y: 500, id: "gn-0d903d89", name: "cli" }, { y: 700, id: "gn-527d0336", name: "schema" }];
+  lanes.forEach((ln, i) => {
+    const off = i * 0.125;
+    const lane = mk(lanesEl, "s4-lane", { top: ln.y + "px" });
+    const lbl = mk(lanesEl, "s4-lbl mono nowrap", { top: ln.y - 90 + "px" }, `worktree/${ln.id} · ${ln.name}`);
+    const node = mk(lanesEl, "s4-node sq", { left: "360px", top: ln.y - 48 + "px" });
+    const w = mk(lanesEl, "s4-w ci", { left: "372px", top: ln.y - 36 + "px" });
+    const tri = mk(lanesEl, "s4-tri tri", { top: ln.y - 84 + "px" });
+    const chk = mk(lanesEl, "s4-check", { top: ln.y - 66 + "px" }, "✓");
+    const verdict = mk(lanesEl, "s4-verdict mono nowrap", { top: ln.y + 50 + "px", color: "#F2B300" }, "NODE_VERDICT: achieved");
+    const round = mk(lanesEl, "s4-round mono nowrap", { top: ln.y - 14 + "px" }, "1/3");
+    tl.fromTo(lane, { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, 18.0 + off);
+    tl.fromTo(lbl, { opacity: 0 }, { opacity: 0.8, duration: 0.25 }, 18.25 + off);
+    tl.fromTo(node, { x: -240 }, { x: 0, duration: 0.25, ease: "expo.out" }, 18.5);
+    tl.fromTo(tri, { scaleY: 0 }, { scaleY: 1, duration: 0.25, ease: "expo.out" }, 18.75 + off);
+    tl.fromTo(round, { opacity: 0 }, { opacity: 1, duration: 0.25 }, 18.75 + off);
+    tl.fromTo(w, { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(2)" }, 18.75);
+    // the worker builds: four steps, a commit dropped on every step
+    const failRound = i === 1;
+    const steps = [0, 1, 2, 3];
+    steps.forEach((s) => {
+      const t = 19.0 + s * 0.5 + off;
+      tl.to(w, { x: 240 * (s + 1), duration: 0.25, ease: "power2.inOut" }, t);
+      const c = mk(lanesEl, "s4-commit", { left: 480 + 240 * s + 24 + "px", top: ln.y - 12 + "px" });
+      tl.fromTo(c, { scale: 0 }, { scale: 1, duration: 0.125, ease: "back.out(3)" }, t + 0.125);
+    });
+    // skeptic reviews
+    if (failRound) {
+      const gaps = mk(lanesEl, "s4-verdict mono nowrap", { top: ln.y + 50 + "px", color: "#D42A1E" }, "NODE_VERDICT: not_achieved");
+      tl.fromTo(tri, { backgroundColor: "#F2B300" }, { backgroundColor: "#D42A1E", duration: 0.01, immediateRender: false }, 21.0);
+      tl.fromTo(gaps, { opacity: 0 }, { opacity: 1, duration: 0.01 }, 21.0);
+      tl.to(gaps, { opacity: 0, duration: 0.01 }, 22.0);
+      tl.to(tri, { backgroundColor: "#F2B300", duration: 0.01 }, 21.5);
+      tl.to(w, { x: 480, duration: 0.25, ease: "power2.inOut" }, 21.25);
+      const round2 = mk(lanesEl, "s4-round mono nowrap", { top: ln.y - 14 + "px", color: "#F2B300" }, "2/3");
+      tl.fromTo(round2, { opacity: 0 }, { opacity: 1, duration: 0.01 }, 21.5);
+      tl.to(round, { opacity: 0, duration: 0.01 }, 21.5);
+      tl.to(w, { x: 960, duration: 0.5, ease: "power2.inOut" }, 22.0);
+      tl.to(tri, { keyframes: [{ scale: 1.3, duration: 0.06 }, { scale: 1, duration: 0.2 }] }, 23.0);
+      tl.fromTo(chk, { opacity: 0, scale: 2 }, { opacity: 1, scale: 1, duration: 0.125, ease: "power4.in" }, 23.0);
+      tl.fromTo(verdict, { opacity: 0 }, { opacity: 1, duration: 0.01 }, 23.0);
+    } else {
+      const tv = i === 0 ? 22.0 : 22.5;
+      tl.to(tri, { keyframes: [{ scale: 1.3, duration: 0.06 }, { scale: 1, duration: 0.2 }] }, tv);
+      tl.fromTo(chk, { opacity: 0, scale: 2 }, { opacity: 1, scale: 1, duration: 0.125, ease: "power4.in" }, tv);
+      tl.fromTo(verdict, { opacity: 0 }, { opacity: 1, duration: 0.01 }, tv);
+    }
+    // sequential merge-back
+    tl.to(node, { x: 1320 - 96, backgroundColor: "#F2B300", duration: 0.25, ease: "expo.inOut" }, 23.5 + i * 0.125);
+  });
+
+  /* ---------- transition 24 (red, top→down) ---------- */
+  wipe("#w24", 24, { y: -1080 }, { y: 0 }, { y: 1080 });
+
+  /* ---------- S5 · gn-final (24–30) ---------- */
+  const svg = $("#s5-svg"), nodesEl = $("#s5-nodes");
+  const N = { core: [960, 100, "gn-dd5e607e"], api: [600, 260, "gn-386aaa87"], cli: [960, 260, "gn-0d903d89"], schema: [1320, 260, "gn-527d0336"], docs: [780, 420, "gn-28eb34d2"], tests: [1140, 420, "gn-5b22cf22"] };
+  const layerT = { core: 24.0, api: 24.5, cli: 24.5, schema: 24.5, docs: 25.0, tests: 25.0 };
+  const path5 = (d, w, t, dur, color) => {
+    const p = document.createElementNS(SVGNS, "path");
+    p.setAttribute("d", d); p.setAttribute("fill", "none"); p.setAttribute("stroke", color || "#141414");
+    p.setAttribute("stroke-width", w); p.setAttribute("stroke-linecap", "square"); svg.appendChild(p);
+    const len = p.getTotalLength(); p.style.strokeDasharray = len;
+    tl.fromTo(p, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: dur, ease: "power2.inOut" }, t);
+    return p;
+  };
+  // structural edges (orthogonal routing via a bus between layers)
+  const E = [["core", "api"], ["core", "cli"], ["core", "schema"], ["api", "docs"], ["cli", "docs"], ["cli", "tests"], ["schema", "tests"]];
+  E.forEach(([a, b], k) => {
+    const [ax, ay] = N[a], [bx, by] = N[b], busY = ay + 96 + (by - ay - 96) / 2;
+    path5(`M${ax} ${ay + 96} V${busY} H${bx} V${by}`, 6, (layerT[b]) - 0.25, 0.5);
+  });
+  // every node → gn-final
+  Object.entries(N).forEach(([k, [x, y]], i) => {
+    const busY = 530 - 0;
+    path5(`M${x + (k === "core" || k === "cli" ? 30 : 0)} ${y + 96} V${busY} H960 V560`, 3, 26.0, 0.5, "#141414");
+  });
+  Object.entries(N).forEach(([k, [x, y, id]]) => {
+    const n = mk(nodesEl, "s5-node sq", { left: x - 48 + "px", top: y + "px" }, `<div class="s5-name">${k}</div>`);
+    const lab = mk(nodesEl, "s5-id mono nowrap", { left: x + 52 + "px", top: y + 4 + "px", width: "auto", textAlign: "left" }, id);
+    const flesh = mk(n, "s5-flesh ci", {});
+    tl.fromTo(n, { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(2.2)" }, layerT[k]);
+    tl.fromTo(lab, { opacity: 0 }, { opacity: 1, duration: 0.125 }, layerT[k] + 0.25);
+    // bones & flesh: nodes become outlined bones, then fill with agents
+    tl.to(n, { backgroundColor: "rgba(0,0,0,0)", boxShadow: "inset 0 0 0 6px #141414", duration: 0.01 }, 27.5);
+    tl.to(n.querySelector(".s5-name"), { color: "#141414", opacity: 0, duration: 0.01 }, 27.5);
+    tl.fromTo(flesh, { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(2.4)" }, 28.5 + Object.keys(N).indexOf(k) * 0.125);
+    tl.to(lab, { opacity: 0, duration: 0.01 }, 27.5);
+  });
+  tl.fromTo("#s5-final", { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: "expo.out" }, 26.5);
+  tl.fromTo("#s5-final-lbl", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "steps(10)" }, 26.5);
+  // the verdict: yellow floods out of the triangle
+  tl.fromTo("#s5-yellow", { clipPath: "circle(0% at 960px 690px)" }, { clipPath: "circle(150% at 960px 690px)", duration: 0.5, ease: "expo.out" }, 27.5);
+  tl.to("#s5-final", { backgroundColor: "#141414", duration: 0.01 }, 27.5);
+  tl.to("#s5-final-lbl", { opacity: 0, duration: 0.01 }, 27.5);
+  tl.fromTo("#s5-bones", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "steps(19)" }, 27.75);
+  tl.fromTo("#s5-zh1", { clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0% 0)", duration: 0.5, ease: "steps(6)" }, 28.0);
+  tl.fromTo("#s5-flesh-t", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "steps(17)" }, 28.75);
+  tl.fromTo("#s5-zh2", { clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0% 0)", duration: 0.5, ease: "steps(5)" }, 29.0);
+
+  /* ---------- transition 30 (ink, right→left) + LOGO (30–34) ---------- */
+  wipe("#w30", 30, { x: 1920 }, { x: 0 }, { x: -1920 });
+  tl.fromTo("#s5-logo", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 30.0);
+  ["30.25", "30.375", "30.5", "30.625"].forEach((t, i) =>
+    tl.fromTo(`#s5-kigi span:nth-child(${i + 1})`, { y: -500, opacity: 0 }, { y: 0, opacity: 1, duration: 0.125, ease: "power4.in" }, +t));
+  tl.fromTo("#s5-graph", { width: 0 }, { width: 500, duration: 0.5, ease: "steps(6)" }, 30.5);
+  tl.fromTo("#s5-l-sq", { y: -700 }, { y: 0, duration: 0.25, ease: "power4.in" }, 30.75);
+  tl.fromTo("#s5-l-ci", { scale: 0 }, { scale: 1, duration: 0.5, ease: "back.out(2)" }, 31.25);
+  tl.fromTo("#s5-l-tri", { scaleY: 0 }, { scaleY: 1, duration: 0.25, ease: "expo.out" }, 32.0);
+  tl.fromTo("#s5-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, 32.0);
+  tl.fromTo("#s5-tag", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "steps(19)" }, 32.25);
+  tl.fromTo("#s5-tag2", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.25, ease: "expo.out" }, 32.75);
+  tl.to("#s5-cursor", { opacity: 0, duration: 0.01, repeat: 3, yoyo: true, repeatDelay: 0.49 }, 32.75);
+  // final downbeat: the three shapes nudge together on 33.0
+  tl.to(["#s5-l-sq", "#s5-l-ci", "#s5-l-tri"], { y: -20, duration: 0.125, ease: "power2.out", yoyo: true, repeat: 1 }, 33.0);
+
+  /* ---------- caption band ---------- */
+  tl.fromTo("#band-rule", { scaleX: 0 }, { scaleX: 1, duration: 1.0, ease: "expo.out" }, 0.5);
+  tl.fromTo("#band-mark", { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(2)" }, 1.5);
+  tl.fromTo("#cap0-zh", { clipPath: "inset(0 0 100% 0)", y: 24 }, { clipPath: "inset(0 0 0% 0)", y: 0, duration: 0.25, ease: "expo.out" }, 1.44);
+  tl.fromTo("#cap0-en", { opacity: 0, x: -24 }, { opacity: 0.72, x: 0, duration: 0.25, ease: "expo.out" }, 1.565);
+  tl.fromTo("#cap1-zh", { clipPath: "inset(0 0 100% 0)", y: 24 }, { clipPath: "inset(0 0 0% 0)", y: 0, duration: 0.25, ease: "expo.out" }, 6.44);
+  tl.fromTo("#cap1-en", { opacity: 0, x: -24 }, { opacity: 0.72, x: 0, duration: 0.25, ease: "expo.out" }, 6.565);
+  tl.fromTo("#cap2-zh", { clipPath: "inset(0 0 100% 0)", y: 24 }, { clipPath: "inset(0 0 0% 0)", y: 0, duration: 0.25, ease: "expo.out" }, 10.44);
+  tl.fromTo("#cap2-en", { opacity: 0, x: -24 }, { opacity: 0.72, x: 0, duration: 0.25, ease: "expo.out" }, 10.565);
+  tl.fromTo("#cap3-zh", { clipPath: "inset(0 0 100% 0)", y: 24 }, { clipPath: "inset(0 0 0% 0)", y: 0, duration: 0.25, ease: "expo.out" }, 12.88);
+  tl.fromTo("#cap3-en", { opacity: 0, x: -24 }, { opacity: 0.72, x: 0, duration: 0.25, ease: "expo.out" }, 13.005);
+  tl.fromTo("#cap4-zh", { clipPath: "inset(0 0 100% 0)", y: 24 }, { clipPath: "inset(0 0 0% 0)", y: 0, duration: 0.25, ease: "expo.out" }, 18.19);
+  tl.fromTo("#cap4-en", { opacity: 0, x: -24 }, { opacity: 0.72, x: 0, duration: 0.25, ease: "expo.out" }, 18.315);
+  tl.fromTo("#cap5-zh", { clipPath: "inset(0 0 100% 0)", y: 24 }, { clipPath: "inset(0 0 0% 0)", y: 0, duration: 0.25, ease: "expo.out" }, 21.24);
+  tl.fromTo("#cap5-en", { opacity: 0, x: -24 }, { opacity: 0.72, x: 0, duration: 0.25, ease: "expo.out" }, 21.365);
+  tl.fromTo("#cap6-zh", { clipPath: "inset(0 0 100% 0)", y: 24 }, { clipPath: "inset(0 0 0% 0)", y: 0, duration: 0.25, ease: "expo.out" }, 24.44);
+  tl.fromTo("#cap6-en", { opacity: 0, x: -24 }, { opacity: 0.72, x: 0, duration: 0.25, ease: "expo.out" }, 24.565);
+  tl.fromTo("#cap7-zh", { clipPath: "inset(0 0 100% 0)", y: 24 }, { clipPath: "inset(0 0 0% 0)", y: 0, duration: 0.25, ease: "expo.out" }, 27.49);
+  tl.fromTo("#cap7-en", { opacity: 0, x: -24 }, { opacity: 0.72, x: 0, duration: 0.25, ease: "expo.out" }, 27.615);
+  tl.fromTo("#cap8-zh", { clipPath: "inset(0 0 100% 0)", y: 24 }, { clipPath: "inset(0 0 0% 0)", y: 0, duration: 0.25, ease: "expo.out" }, 29.97);
+  tl.fromTo("#cap8-en", { opacity: 0, x: -24 }, { opacity: 0.72, x: 0, duration: 0.25, ease: "expo.out" }, 30.095);
+
+  window.__timelines["main"] = tl;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+[
+  {"id":"s1","segs":[{"zh":"一个智能体，扛不动一个庞大的目标。","en":"One agent can't carry one huge goal."}]},
+  {"id":"s2","segs":[{"zh":"Kigi 的答案：一张图。","en":"Kigi's answer: a graph."}]},
+  {"id":"s3","segs":[{"zh":"智能体的循环，活在节点内部；","en":"The agentic loop lives inside each node;"},{"zh":"节点之间的边，是确定性的 Rust。","en":"the edges between them are deterministic Rust."}]},
+  {"id":"s4","segs":[{"zh":"就绪的节点三路并行，各占一棵工作树，","en":"Ready nodes run three at a time, each in its own worktree,"},{"zh":"由怀疑论者逐一审查。","en":"each checked by a skeptic."}]},
+  {"id":"s5","segs":[{"zh":"最后，gn-final 重新验收整个目标。","tts":"最后，G N final 重新验收整个目标。","en":"Finally, gn-final re-verifies the whole objective."},{"zh":"确定性的骨架，智能的血肉。","en":"Deterministic bones. Intelligent flesh."},{"zh":"Kigi /graph。","tts":"Kigi，斜杠 graph。","en":"Kigi /graph."}]}
+]
