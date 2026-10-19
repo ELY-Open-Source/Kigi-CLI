@@ -23,8 +23,8 @@ the `kigi-frontend` Worker on `kigicli.dev` and `www.kigicli.dev`.
 Assets are matched first and served directly. Requests with no matching file
 fall through to the Worker, which owns:
 
-- `GET /install.sh` — proxies `install.sh` from the Kigi repo on Gitea
-- `GET /install.ps1` — proxies `install.ps1` from the Kigi repo on Gitea
+- `GET /install.sh` — proxies `install.sh` from the Kigi repo on GitHub
+- `GET /install.ps1` — proxies `install.ps1` from the Kigi repo on GitHub
 - `GET /health` — plain-text liveness check
 - everything else — `env.ASSETS.fetch()`, which serves `index.html` for unknown
   paths (single-page-application fallback)
