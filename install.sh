@@ -14,14 +14,14 @@
 # Environment:
 #   KIGI_SHARE_DIR        install root (default: ~/.kigi)
 #   KIGI_UPDATE_BASE_URL  releases API base, GitHub/Gitea-shaped (default:
-#                         https://git.zacharyzhang.com/api/v1/repos/ZacharyZhang-NY/Kigi-CLI/releases)
+#                         https://api.github.com/repos/ELY-Open-Source/Kigi-CLI/releases)
 #
 # Fails fast on any error; never leaves a partial binary as the active kigi.
 
 set -eu
 
-REPO="ZacharyZhang-NY/Kigi-CLI"
-API_BASE="${KIGI_UPDATE_BASE_URL:-https://git.zacharyzhang.com/api/v1/repos/${REPO}/releases}"
+REPO="ELY-Open-Source/Kigi-CLI"
+API_BASE="${KIGI_UPDATE_BASE_URL:-https://api.github.com/repos/${REPO}/releases}"
 KIGI_HOME="${KIGI_SHARE_DIR:-$HOME/.kigi}"
 
 err() {

@@ -68,7 +68,7 @@ a design against the 0.1.15 teardown), MCP servers on protocol 2026-07-28
 ## Hard constraints
 
 - **Zero egress**: only `auth.kimi.com`, `api.kimi.com`, `api.moonshot.cn`,
-  `api.moonshot.ai`, Gitea Releases (`git.zacharyzhang.com`), user-configured MCP servers, credentialed
+  `api.moonshot.ai`, GitHub Releases, user-configured MCP servers, credentialed
   provider endpoints, and `models.dev` (metadata refresh, ONLY when an enabled
   platform's `/models` lacks it — `wire_serves_metadata=false`, never
   Kimi/Moonshot, `KIGI_MODELS_DEV_URL=0` disables). No telemetry, no analytics,
@@ -640,4 +640,4 @@ client-side, no backend surface.
   grok.com references live only there and in `kigi-sampler`/proxy types.
 - M2: server-side search/fetch (F5), command parity with kimi-cli 1.49.0
   (F6), one-time `~/.kimi/config.toml` import (F7), F9 smoke list, perf CI.
-- M3: Gitea Releases distribution, install scripts, self-update (F8).
+- M3: GitHub Releases distribution, install scripts, self-update (F8).

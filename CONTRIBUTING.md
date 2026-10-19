@@ -21,16 +21,9 @@ cargo deny check advisories
 - Upstream syncs are evaluated commit-by-commit and cherry-picked manually;
   see the PRD §8.1 policy (`git range-diff` records the adopted set).
 
-## Opening a pull request on git.zacharyzhang.com
+## Opening a pull request
 
-Forking is disabled on this server. Open pull requests with AGit instead:
-
-1. Register an account at https://git.zacharyzhang.com
-2. Clone, commit your changes, then push to a `refs/for/<target-branch>` ref:
-
-   ```bash
-   git clone https://git.zacharyzhang.com/ZacharyZhang-NY/Kigi-CLI.git
-   git push origin HEAD:refs/for/main -o topic=<short-name> -o title="<PR title>" -o description="<PR body>"
-   ```
-
-3. To update the pull request, push again with the same `topic`.
+Fork [ELY-Open-Source/Kigi-CLI](https://github.com/ELY-Open-Source/Kigi-CLI),
+push your branch to the fork, and open a pull request against `main`. Report
+bugs and request features on the
+[issue tracker](https://github.com/ELY-Open-Source/Kigi-CLI/issues).
