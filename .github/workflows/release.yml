@@ -1,0 +1,255 @@
+name: Release
+
+# PRD F8. On a v* tag push, build the single-file kigi binary for the five
+# supported targets, package kigi-<version>-<target-triple>.{tar.gz|zip}
+# (binary + LICENSE + NOTICE + THIRD-PARTY-NOTICES), and publish them as a
+# GitHub Release alongside SHA256SUMS. install.sh, install.ps1 and
+# auto_update::release_asset_name() all resolve these exact names — keep the
+# naming in lockstep with them.
+#
+# RUNNERS. GitHub-hosted only; no job needs local state, and the repo is
+# public, so nothing here may move to a self-hosted runner.
+#
+#   ubuntu-latest      x86_64-unknown-linux-gnu
+#   ubuntu-24.04-arm   aarch64-unknown-linux-gnu, built natively (no cross C
+#                      toolchain for ring, mimalloc, zstd-sys, libz-sys)
+#   macos-latest       both Darwin targets; the runner is arm64, so x86_64 is
+#                      a cross-compile against the same SDK
+#   windows-latest     x86_64-pc-windows-msvc (VS Build Tools preinstalled,
+#                      needed for the static MSVC CRT link)
+#
+# PUBLISH ORDER. The release is created as a draft and only made public once
+# SHA256SUMS is attached, so `releases/latest` never hands the installer a
+# release whose checksum manifest is still missing.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_REPO: ${{ github.repository }}
+  # Matches the version pinned by the dotslash launcher in bin/protoc. That
+  # launcher is not used here: it has no Windows entry and needs a `cargo
+  # install dotslash` first, so every platform fetches protoc directly.
+  PROTOC_VERSION: "29.3"
+
+jobs:
+  prepare:
+    name: prepare draft release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches workspace version
+        shell: bash
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          cargo_version="$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)"
+          if [ "$tag_version" != "$cargo_version" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match workspace version $cargo_version" >&2
+            exit 1
+          fi
+
+      # Idempotent so a re-run of a failed tag build reuses the same draft
+      # instead of erroring on a duplicate tag_name.
+      - name: Create or reuse draft release
+        shell: bash
+        run: |
+          set -eu
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            echo "Reusing release $GITHUB_REF_NAME"
+            exit 0
+          fi
+          prerelease=""
+          case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
+            --title "$GITHUB_REF_NAME" --generate-notes $prerelease
+          echo "Created draft release $GITHUB_REF_NAME ${prerelease}"
+
+  build:
+    name: build (${{ matrix.target }})
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
+            protoc: linux-x86_64
+            ext: tar.gz
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-24.04-arm
+            protoc: linux-aarch_64
+            ext: tar.gz
+          - target: aarch64-apple-darwin
+            runner: macos-latest
+            protoc: osx-aarch_64
+            ext: tar.gz
+          - target: x86_64-apple-darwin
+            runner: macos-latest
+            protoc: osx-aarch_64
+            ext: tar.gz
+          - target: x86_64-pc-windows-msvc
+            runner: windows-latest
+            protoc: win64
+            ext: zip
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── protoc ────────────────────────────────────────────────────────────
+      - name: Install protoc (unix)
+        if: matrix.ext == 'tar.gz'
+        shell: bash
+        run: |
+          set -eu
+          url="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-${{ matrix.protoc }}.zip"
+          curl -fsSL -o protoc.zip "$url"
+          rm -rf "$HOME/protoc"
+          unzip -q -o protoc.zip -d "$HOME/protoc"
+          chmod +x "$HOME/protoc/bin/protoc"
+          echo "$HOME/protoc/bin" >> "$GITHUB_PATH"
+
+      - name: Install protoc (windows)
+        if: matrix.ext == 'zip'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $url = "https://github.com/protocolbuffers/protobuf/releases/download/v$env:PROTOC_VERSION/protoc-$env:PROTOC_VERSION-${{ matrix.protoc }}.zip"
+          Invoke-WebRequest -Uri $url -OutFile protoc.zip
+          $dest = Join-Path $env:USERPROFILE "protoc"
+          if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
+          Expand-Archive protoc.zip -DestinationPath $dest -Force
+          Add-Content -Path $env:GITHUB_PATH -Value (Join-Path $dest "bin")
+
+      # ── toolchain ─────────────────────────────────────────────────────────
+      # rust-toolchain.toml pins the channel (1.97.0); `rustup show`
+      # materialises exactly that.
+      - name: Install toolchain
+        shell: bash
+        run: |
+          set -eu
+          # The arm64 Linux image is not guaranteed to ship rustup.
+          # `--default-toolchain none` leaves the channel choice to
+          # rust-toolchain.toml.
+          if ! command -v rustup >/dev/null; then
+            curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs \
+              | sh -s -- -y --no-modify-path --profile minimal --default-toolchain none
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+            export PATH="$HOME/.cargo/bin:$PATH"
+          fi
+          rustup show
+          rustup target add ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      # ── build ─────────────────────────────────────────────────────────────
+      - name: Build kigi
+        shell: bash
+        run: cargo build --profile release-dist -p kigi-bin --locked --target ${{ matrix.target }}
+
+      # ── package, upload, checksum ─────────────────────────────────────────
+      # Archives go straight to the release rather than through the artifact
+      # store: they are large, and the release is the only place install.sh
+      # can read them from anyway. Only the checksum line travels as an
+      # artifact, for the publish job to concatenate.
+      - name: Package (unix)
+        if: matrix.ext == 'tar.gz'
+        shell: bash
+        run: |
+          set -eu
+          version="${GITHUB_REF_NAME#v}"
+          archive="kigi-${version}-${{ matrix.target }}.tar.gz"
+          staging="$(mktemp -d)"
+          cp "target/${{ matrix.target }}/release-dist/kigi" "$staging/kigi"
+          cp LICENSE "$staging/"
+          [ -f NOTICE ] && cp NOTICE "$staging/"
+          for f in THIRD-PARTY-NOTICES THIRD-PARTY-NOTICES.md; do
+            [ -f "$f" ] && cp "$f" "$staging/"
+          done
+          tar -C "$staging" -czf "$archive" .
+          echo "ARCHIVE=$archive" >> "$GITHUB_ENV"
+
+      - name: Package (windows)
+        if: matrix.ext == 'zip'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $version = $env:GITHUB_REF_NAME.TrimStart("v")
+          $archive = "kigi-$version-${{ matrix.target }}.zip"
+          $staging = Join-Path $env:RUNNER_TEMP "staging"
+          if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $staging | Out-Null
+          Copy-Item "target/${{ matrix.target }}/release-dist/kigi.exe" (Join-Path $staging "kigi.exe")
+          Copy-Item LICENSE $staging
+          if (Test-Path NOTICE) { Copy-Item NOTICE $staging }
+          foreach ($f in @("THIRD-PARTY-NOTICES", "THIRD-PARTY-NOTICES.md")) {
+            if (Test-Path $f) { Copy-Item $f $staging }
+          }
+          Compress-Archive -Path (Join-Path $staging "*") -DestinationPath $archive -Force
+          Add-Content -Path $env:GITHUB_ENV -Value "ARCHIVE=$archive"
+
+      # Git Bash on Windows; sha256sum is available on every runner except
+      # macOS, which has shasum.
+      - name: Upload and checksum
+        shell: bash
+        run: |
+          set -eu
+          gh release upload "$GITHUB_REF_NAME" "$ARCHIVE" --clobber
+          echo "Uploaded $ARCHIVE"
+          if command -v sha256sum >/dev/null; then
+            sha256sum "$ARCHIVE" > "checksum-${{ matrix.target }}.txt"
+          else
+            shasum -a 256 "$ARCHIVE" > "checksum-${{ matrix.target }}.txt"
+          fi
+          cat "checksum-${{ matrix.target }}.txt"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checksum-${{ matrix.target }}
+          path: checksum-${{ matrix.target }}.txt
+          if-no-files-found: error
+
+  publish:
+    name: publish release
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: checksums
+          pattern: checksum-*
+          merge-multiple: true
+
+      - name: Assemble SHA256SUMS
+        shell: bash
+        run: |
+          set -eu
+          # Strip CR (Git Bash may emit CRLF) and the binary-mode `*` marker
+          # so every line is `<hash>  <name>` for install.sh.
+          cat checksums/checksum-*.txt \
+            | tr -d '\r' | sed 's/ \*/  /' | grep -v '^$' | sort -k2 > SHA256SUMS
+          lines="$(wc -l < SHA256SUMS)"
+          if [ "$lines" -ne 5 ]; then
+            echo "expected 5 checksum lines, got $lines" >&2
+            cat SHA256SUMS >&2
+            exit 1
+          fi
+          cat SHA256SUMS
+
+      # Flip the draft public only now that every asset install.sh looks for
+      # is attached.
+      - name: Attach SHA256SUMS and publish
+        shell: bash
+        run: |
+          set -eu
+          gh release upload "$GITHUB_REF_NAME" SHA256SUMS --clobber
+          gh release edit "$GITHUB_REF_NAME" --draft=false
+          echo "Published $GITHUB_REF_NAME"
