@@ -13,7 +13,7 @@ cargo about generate about.hbs -o THIRD-PARTY-NOTICES.md
 ## Overview
 
 - Apache License 2.0 (728 crates)
-- MIT License (292 crates)
+- MIT License (291 crates)
 - ISC License (26 crates)
 - BSD 3-Clause "New" or "Revised" License (22 crates)
 - Unicode License v3 (19 crates)
@@ -18876,7 +18876,7 @@ Applies to:
 - [wayland-client 0.31.14](https://github.com/smithay/wayland-rs)
 - [wayland-protocols-wlr 0.3.12](https://github.com/smithay/wayland-rs)
 - [wayland-protocols 0.32.13](https://github.com/smithay/wayland-rs)
-- [wayland-scanner 0.31.10](https://github.com/smithay/wayland-rs)
+- [wayland-scanner 0.31.11](https://github.com/smithay/wayland-rs)
 - [wayland-sys 0.31.11](https://github.com/smithay/wayland-rs)
 
 ```
@@ -23129,7 +23129,6 @@ SOFTWARE.
 
 Applies to:
 
-- [quick-xml 0.39.4](https://github.com/tafia/quick-xml)
 - [quick-xml 0.41.0](https://github.com/tafia/quick-xml)
 
 ```

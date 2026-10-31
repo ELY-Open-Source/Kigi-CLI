@@ -5,20 +5,15 @@
 version = 2
 yanked = "deny"
 ignore = [
-    # quick-xml 0.39 (two advisories): pinned by wayland-scanner 0.31.10
-    # (latest), a build-time proc-macro parsing vendored Wayland protocol
-    # XML — no attacker-controlled input reaches it.
-    { id = "RUSTSEC-2026-0194", reason = "build-time parse of vendored XML via wayland-scanner" },
-    { id = "RUSTSEC-2026-0206", reason = "build-time parse of vendored XML via wayland-scanner" },
-    # Unmaintained transitive dependencies with no upstream fix available.
-    { id = "RUSTSEC-2025-0052", reason = "async-std via dark-light 2 (latest); theme detection" },
-    { id = "RUSTSEC-2025-0012", reason = "backoff via async-openai (latest)" },
-    { id = "RUSTSEC-2024-0384", reason = "instant via backoff via async-openai (latest)" },
+    # Unmaintained transitive dependencies; each reason names its blocker.
+    { id = "RUSTSEC-2025-0052", reason = "async-std via dark-light 2; 3.0 drops it and its 25ms D-Bus timeout" },
+    { id = "RUSTSEC-2025-0012", reason = "backoff via async-openai 0.33; 0.42 drops it (major bump not taken)" },
+    { id = "RUSTSEC-2024-0384", reason = "instant via backoff via async-openai 0.33" },
     { id = "RUSTSEC-2025-0141", reason = "bincode 1 via syntect (latest); local cache format" },
     { id = "RUSTSEC-2024-0436", reason = "paste via ratatui 0.29 (workspace-pinned TUI stack)" },
     { id = "RUSTSEC-2025-0057", reason = "fxhash via bm25 (latest); local search scoring" },
-    { id = "RUSTSEC-2026-0192", reason = "rustybuzz via pdf_oxide/resvg (latest); local rendering" },
-    { id = "RUSTSEC-2026-0195", reason = "ttf-parser via fontdb/resvg (latest); local font parsing" },
+    { id = "RUSTSEC-2026-0206", reason = "rustybuzz via pdf_oxide 0.3.74 and resvg 0.47; later releases drop it" },
+    { id = "RUSTSEC-2026-0192", reason = "ttf-parser via fontdb and pdf_oxide (0.3.78 still needs it)" },
     { id = "RUSTSEC-2024-0320", reason = "yaml-rust via syntect (latest); parses bundled syntax defs" },
     { id = "RUSTSEC-2024-0449", reason = "unsafe-libyaml via serde_yaml 0.9 (final release)" },
     # zbus 6 absorbed these crates; dark-light 3 (latest) still needs zbus 5.
