@@ -20,7 +20,8 @@ repo's GitHub Releases
    ```
 
    Keep cargo-about at 0.9.2: 0.9.3 pastes ring's source files in as
-   license text. A Windows run lists a different crate set and order.
+   license text. A Windows run orders the license blocks differently, so
+   its diff against the committed file is noise.
 
    Commit the result if it changed.
 3. Tag and push:
