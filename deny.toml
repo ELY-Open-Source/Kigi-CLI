@@ -5,11 +5,6 @@
 version = 2
 yanked = "deny"
 ignore = [
-    # rsa: Marvin timing sidechannel. Reached only through jsonwebtoken's
-    # RS256 *signature verification* in the enterprise-OIDC login path
-    # (public-key operation; Marvin concerns private-key decryption). The
-    # entire OIDC stack is replaced by the Kimi device flow in M1.
-    { id = "RUSTSEC-2023-0071", reason = "verification-only use; auth stack replaced in M1" },
     # quick-xml 0.39 (two advisories): pinned by wayland-scanner 0.31.10
     # (latest), a build-time proc-macro parsing vendored Wayland protocol
     # XML — no attacker-controlled input reaches it.

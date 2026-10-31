@@ -191,7 +191,6 @@ reqwest = { version = "0.12", features = ["rustls-tls", "stream", "json", "multi
 reqwest-middleware = { version = "0.4.1", features = ["json", "multipart"] }
 resvg = { version = "0.47", default-features = false, features = ["text"] }
 ring = "0.17"
-rsa = "0.9"
 runfiles = "0.1"
 rustc-hash = "2"
 schemars = "1"

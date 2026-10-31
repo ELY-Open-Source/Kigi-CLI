@@ -103,7 +103,6 @@ infer = "0.15"
 image = { workspace = true, features = ["png", "jpeg", "gif", "webp"] }
 moka = { workspace = true, features = ["future"] }
 base64 = { workspace = true }
-jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 sha2 = { workspace = true }
 rand = { workspace = true }
 shlex = { workspace = true }
@@ -194,7 +193,6 @@ kigi-config = { workspace = true, features = ["test-support"] }
 ring = { workspace = true }
 tar = { workspace = true }
 flate2 = { workspace = true }
-rsa = { workspace = true }
 semver = { workspace = true }
 serial_test = { workspace = true }
 # Test-only builds expose `env::EnvVarGuard` and the cpu_profile test seams to
