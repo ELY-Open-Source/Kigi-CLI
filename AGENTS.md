@@ -19,7 +19,9 @@ snapshot `8adf901` (2026-07-16, ≈v0.2.102); bug fixes evaluated and
 selectively ported through upstream `77cd7eb` (2026-08-25, ≈v1.0.10) in
 the 0.1.13 cycle, through `3794978` (2026-09-09, ≈v1.0.24) in the 0.1.15
 cycle, through `a28ee2b` (2026-09-17, ≈v1.0.35) in the 0.1.16 cycle, and
-through `2bdd1d6` (2026-09-29, ≈v1.0.45) in the 0.1.19 cycle.
+through `2bdd1d6` (2026-09-29, ≈v1.0.45) in the 0.1.19 cycle. The
+0.1.22 check (2026-10-31) found upstream still at `2bdd1d6`: nothing new
+to port.
 The local release is 0.1.20; it adds custom providers declared by base
 URL (`[platforms.<name>]`, see CUSTOM PROVIDERS below).
 Every upstream reference comes from the local clone at `./grok-build`
