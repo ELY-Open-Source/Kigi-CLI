@@ -20,6 +20,11 @@ ignore = [
     { id = "RUSTSEC-2026-0192", reason = "rustybuzz via pdf_oxide/resvg (latest); local rendering" },
     { id = "RUSTSEC-2026-0195", reason = "ttf-parser via fontdb/resvg (latest); local font parsing" },
     { id = "RUSTSEC-2024-0320", reason = "yaml-rust via syntect (latest); parses bundled syntax defs" },
+    { id = "RUSTSEC-2024-0449", reason = "unsafe-libyaml via serde_yaml 0.9 (final release)" },
+    # zbus 6 absorbed these crates; dark-light 3 (latest) still needs zbus 5.
+    { id = "RUSTSEC-2026-0370", reason = "zvariant via zbus 5" },
+    { id = "RUSTSEC-2026-0371", reason = "zbus_names via zbus 5" },
+    { id = "RUSTSEC-2026-0372", reason = "zvariant_derive via zbus 5" },
 ]
 
 [licenses]
