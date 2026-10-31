@@ -1108,7 +1108,7 @@ fn extract_kigi_binary_blocking(archive: &Path, dest_tmp: &Path) -> Result<()> {
     for i in 0..zip.len() {
         let mut entry = zip.by_index(i)?;
         let base_name = entry
-            .name()
+            .name()?
             .rsplit(['/', '\\'])
             .next()
             .unwrap_or_default()
@@ -2796,6 +2796,52 @@ mod tests {
 
         let out = dir.path().join("kigi-extracted");
         assert!(extract_kigi_binary(&archive, &out).await.is_err());
+    }
+
+    // Archive extraction (Windows: zip)
+
+    #[cfg(windows)]
+    fn make_zip(entries: &[(&str, &[u8])]) -> Vec<u8> {
+        use std::io::Write as _;
+        let mut writer = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+        for (name, data) in entries {
+            writer
+                .start_file(*name, zip::write::SimpleFileOptions::default())
+                .unwrap();
+            writer.write_all(data).unwrap();
+        }
+        writer.finish().unwrap().into_inner()
+    }
+
+    #[cfg(windows)]
+    #[tokio::test]
+    async fn test_extract_kigi_binary_finds_kigi_exe_entry() {
+        let dir = tempfile::tempdir().unwrap();
+        let archive = dir.path().join("kigi-0.1.0-test.zip");
+        std::fs::write(
+            &archive,
+            make_zip(&[("LICENSE", b"license text"), ("kigi.exe", b"MZ binary")]),
+        )
+        .unwrap();
+
+        let out = dir.path().join("kigi-extracted");
+        extract_kigi_binary(&archive, &out).await.unwrap();
+        assert_eq!(std::fs::read(&out).unwrap(), b"MZ binary");
+    }
+
+    #[cfg(windows)]
+    #[tokio::test]
+    async fn test_extract_kigi_binary_missing_exe_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let archive = dir.path().join("kigi-0.1.0-test.zip");
+        std::fs::write(&archive, make_zip(&[("LICENSE", b"license only")])).unwrap();
+
+        let out = dir.path().join("kigi-extracted");
+        let err = extract_kigi_binary(&archive, &out).await.unwrap_err();
+        assert!(
+            format!("{err}").contains("no 'kigi.exe' binary"),
+            "err: {err}"
+        );
     }
 
     // UpdateStatus serialization (camelCase contract for --json clients)

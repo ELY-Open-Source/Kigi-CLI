@@ -31,10 +31,14 @@ pub(crate) fn extract_pptx_text_from_bytes(bytes: &[u8]) -> Result<String, Strin
     let mut archive = ZipArchive::new(Cursor::new(bytes))
         .map_err(|e| format!("Failed to open PPTX archive: {e}"))?;
 
+    let names = archive
+        .file_names()
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| format!("Failed to read PPTX entry names: {e}"))?;
     // Collect slide numbers from `ppt/slides/slideN.xml` entries and sort
     // numerically so slide ordering matches the presentation.
-    let mut slide_numbers: Vec<u32> = archive
-        .file_names()
+    let mut slide_numbers: Vec<u32> = names
+        .iter()
         .filter_map(|name| {
             name.strip_prefix("ppt/slides/slide")?
                 .strip_suffix(".xml")?
