@@ -11,13 +11,16 @@ repo's GitHub Releases
 
 1. Bump `[workspace.package] version` in `Cargo.toml`; land the change on
    `main` with green CI.
-2. Regenerate the third-party notices (not enforced by CI — this is the
-   step that keeps `THIRD-PARTY-NOTICES.md` fresh):
+2. Regenerate the third-party notices on Linux (not enforced by CI — this
+   is the step that keeps `THIRD-PARTY-NOTICES.md` fresh):
 
    ```sh
-   cargo install cargo-about --locked   # once
+   cargo install cargo-about@0.9.2 --locked --features cli   # once
    cargo about generate about.hbs -o THIRD-PARTY-NOTICES.md
    ```
+
+   Keep cargo-about at 0.9.2: 0.9.3 pastes ring's source files in as
+   license text. A Windows run lists a different crate set and order.
 
    Commit the result if it changed.
 3. Tag and push:
