@@ -146,7 +146,6 @@ kigi-http = { workspace = true }
 kigi-models = { workspace = true }
 flate2 = { workspace = true }
 fs2 = { workspace = true }
-zstd = { workspace = true }
 tar = { workspace = true }
 url = { workspace = true }
 kigi-secrets = { path = "../kigi-secrets" }

@@ -295,7 +295,7 @@ kigi-tool-types = { path = "crates/common/kigi-tool-types" }
 kigi-tty-utils = { path = "crates/codegen/kigi-tty-utils" }
 zbus = { version = "5" }
 zip = { version = "9", default-features = false, features = ["deflate"] }
-zstd = "0.13"
+zstd = "0.14"
 
 [profile.release]
 incremental = true
