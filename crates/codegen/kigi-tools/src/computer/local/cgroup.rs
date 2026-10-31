@@ -106,7 +106,8 @@ mod linux {
             // SAFETY: `raw` comes from a successful `inotify_init1`, so it is a
             // live fd that nothing else owns.
             let owned = unsafe { OwnedFd::from_raw_fd(raw) };
-            let fd = AsyncFd::with_interest(owned, Interest::READABLE)?;
+            // SAFETY: the AsyncFd owns `owned`, so the fd stays open and fixed.
+            let fd = unsafe { AsyncFd::register_with_interest(owned, Interest::READABLE) }?;
             Ok(Inotify { fd })
         }
 
