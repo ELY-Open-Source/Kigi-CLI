@@ -43,3 +43,11 @@ targets = [
 # SPDX expression parsing cannot classify on its own.
 [ring]
 accepted = ["ISC", "MIT", "OpenSSL"]
+
+# tonic 0.14.9 sources carry MIT headers; take only LICENSE.
+[tonic.clarify]
+license = "MIT"
+
+[[tonic.clarify.files]]
+path = "LICENSE"
+checksum = "5c686e0f7978412b49187ae0e9f77e9b52eea9d8d2e6c0de8694b35817d873b1"
