@@ -22,8 +22,10 @@ cycle, through `a28ee2b` (2026-09-17, ≈v1.0.35) in the 0.1.16 cycle, and
 through `2bdd1d6` (2026-09-29, ≈v1.0.45) in the 0.1.19 cycle. The
 0.1.22 check (2026-10-31) found upstream still at `2bdd1d6`: nothing new
 to port.
-The local release is 0.1.20; it adds custom providers declared by base
-URL (`[platforms.<name>]`, see CUSTOM PROVIDERS below).
+The local release is 0.1.22; it self-updates from
+`ELY-Open-Source/Kigi-CLI` on GitHub (0.1.21 read Gitea). Custom
+providers declared by base URL (`[platforms.<name>]`, see CUSTOM
+PROVIDERS below) arrived in 0.1.19.
 Every upstream reference comes from the local clone at `./grok-build`
 (gitignored, never committed): `git -C grok-build pull` before a sync,
 then read upstream code and history there, not from the web.
